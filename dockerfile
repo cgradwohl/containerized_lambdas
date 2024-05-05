@@ -1,4 +1,4 @@
-FROM public.ecr.aws/lambda/python:3.8
+FROM public.ecr.aws/lambda/python:3.12
 # Copy function code
 COPY app.py /var/task
 # Install the function's dependencies using file requirements.txt
