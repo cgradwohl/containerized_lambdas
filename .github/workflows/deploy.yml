@@ -19,7 +19,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
-          aws-region: eu-west-2
+          aws-region: us-west-1
 
       - name: Login to Amazon ECR
         id: login-ecr
@@ -33,6 +33,6 @@ jobs:
           IMAGE_TAG: latest
         run: |
           docker build -t example .
-          docker tag example:latest ${{ secrets.AWS_ACCOUNT_NUM }}.dkr.ecr.eu-west-2.amazonaws.com/example:latest
-          docker push ${{ secrets.AWS_ACCOUNT_NUM }}.dkr.ecr.eu-west-2.amazonaws.com/example:latest
-          aws lambda update-function-code --function-name example-lambda --image-uri ${{ secrets.AWS_ACCOUNT_NUM }}.dkr.ecr.eu-west-2.amazonaws.com/example:latest
+          docker tag example:latest ${{ secrets.AWS_ACCOUNT_NUM }}.dkr.ecr.us-west-1.amazonaws.com/example:latest
+          docker push ${{ secrets.AWS_ACCOUNT_NUM }}.dkr.ecr.us-west-1.amazonaws.com/example:latest
+          aws lambda update-function-code --function-name example-lambda --image-uri ${{ secrets.AWS_ACCOUNT_NUM }}.dkr.ecr.us-west-1.amazonaws.com/example:latest
