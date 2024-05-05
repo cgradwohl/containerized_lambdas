@@ -35,12 +35,12 @@ resource "aws_lambda_function" "example" {
     null_resource.ecr_image
   ]
   function_name = "example-lambda"
-  #   architectures = ["arm64"]x86_64
-  role         = aws_iam_role.lambda.arn
-  timeout      = 180
-  memory_size  = 10240
-  image_uri    = "${aws_ecr_repository.example.repository_url}:latest"
-  package_type = "Image"
+  architectures = ["arm64"]
+  role          = aws_iam_role.lambda.arn
+  timeout       = 180
+  memory_size   = 10240
+  image_uri     = "${aws_ecr_repository.example.repository_url}:latest"
+  package_type  = "Image"
 }
 
 resource "aws_cloudwatch_log_group" "example_service" {
