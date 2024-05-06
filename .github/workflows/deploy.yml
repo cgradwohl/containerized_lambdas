@@ -27,7 +27,23 @@ jobs:
         run: terraform init
         working-directory: ./terraform
 
+      - name: Check if ECR Repository Exists
+        id: check_repo
+        run: |
+          if aws ecr describe-repositories --repository-names my-ecr-repo; then
+            echo "Repository exists, skipping creation."
+            echo "REPO_EXISTS=true" >> $GITHUB_ENV
+          else
+            echo "Repository does not exist."
+            echo "REPO_EXISTS=false" >> $GITHUB_ENV
+          fi
+        env:
+          AWS_DEFAULT_REGION: us-west-1
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
+
       - name: Terraform Apply (ECR Only)
+        if: env.REPO_EXISTS == 'false'
         run: terraform apply -auto-approve -target=module.ecr_repository
         working-directory: ./terraform
 
