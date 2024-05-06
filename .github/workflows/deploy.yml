@@ -80,7 +80,8 @@ jobs:
         run: |
           docker buildx build --platform linux/arm64 -t $ECR_REGISTRY/my-ecr-repo:$IMAGE_SHA_TAG -f src/Dockerfile src --push
           docker buildx build --platform linux/arm64 -t $ECR_REGISTRY/my-ecr-repo:$IMAGE_TAG -f src/Dockerfile src --push
-          aws lambda update-function-code --function-name example-lambda --image-uri $ECR_REGISTRY/my-ecr-repo:$IMAGE_TAG
+        #   need to deploy the lambda first :)
+        #   aws lambda update-function-code --function-name example-lambda --image-uri $ECR_REGISTRY/my-ecr-repo:$IMAGE_TAG
 
   deploy_lambda:
     name: Deploy Lambda Function
@@ -88,21 +89,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
           aws-region: us-west-1
-
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
-
       - name: Terraform Initialize
         run: terraform init
         working-directory: ./terraform
-
       - name: Terraform Apply (Rest of Infrastructure)
         run: terraform apply -auto-approve
         working-directory: ./terraform
