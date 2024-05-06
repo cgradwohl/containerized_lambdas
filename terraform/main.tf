@@ -4,11 +4,19 @@ provider "aws" {
 }
 
 # ECR repository
-resource "aws_ecr_repository" "example" {
-  name = "example"
-  tags = {
-    "project" : "example-tf-continers"
-  }
+# resource "aws_ecr_repository" "example" {
+#   name = "example"
+#   tags = {
+#     "project" : "example-tf-continers"
+#   }
+# }
+module "ecr_repository" {
+  source = "./modules/ecr"
+  name   = "my-ecr-repo"
+}
+
+output "ecr_repository_url" {
+  value = module.ecr_repository.repository_url
 }
 
 #  Using Terraforms null_resource allows us to implement a lifecycle on
@@ -18,16 +26,15 @@ resource "aws_ecr_repository" "example" {
 # to our main python file or Dockerfile
 resource "null_resource" "ecr_image" {
   triggers = {
-    python_file = md5(file("./app.py"))
-    docker_file = md5(file("./Dockerfile"))
+    python_file = md5(file("../src/app.py"))
+    docker_file = md5(file("../src/Dockerfile"))
   }
 }
 data "aws_ecr_image" "lambda_image" {
   depends_on      = [null_resource.ecr_image]
-  repository_name = aws_ecr_repository.example.name
+  repository_name = module.ecr_repository.name
   image_tag       = "latest"
 }
-
 
 # Lambda
 resource "aws_lambda_function" "example" {
@@ -39,7 +46,7 @@ resource "aws_lambda_function" "example" {
   role          = aws_iam_role.lambda.arn
   timeout       = 180
   memory_size   = 10240
-  image_uri     = "${aws_ecr_repository.example.repository_url}:latest"
+  image_uri     = "${module.ecr_repository.repository_url}:latest"
   package_type  = "Image"
 }
 
