@@ -31,7 +31,7 @@ resource "null_resource" "ecr_image" {
   }
 }
 data "aws_ecr_image" "lambda_image" {
-  depends_on      = [null_resource.ecr_image]
+  # depends_on      = [null_resource.ecr_image]
   repository_name = module.ecr_repository.name
   image_tag       = "latest"
 }
