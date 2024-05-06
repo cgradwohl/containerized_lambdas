@@ -77,10 +77,10 @@ jobs:
           ECR_REPOSITORY: example
           IMAGE_TAG: latest
         run: |
-          docker buildx build --platform linux/arm64 -t ${{ secrets.AWS_ACCOUNT_NUM }}.dkr.ecr.us-west-1.amazonaws.com/example:${{ github.sha }} -f src/Dockerfile src --push
-          docker tag ${{ secrets.AWS_ACCOUNT_NUM }}.dkr.ecr.us-west-1.amazonaws.com/example:${{ github.sha }} ${{ secrets.AWS_ACCOUNT_NUM }}.dkr.ecr.us-west-1.amazonaws.com/example:latest
-          docker push ${{ secrets.AWS_ACCOUNT_NUM }}.dkr.ecr.us-west-1.amazonaws.com/example:latest
-          aws lambda update-function-code --function-name example-lambda --image-uri ${{ secrets.AWS_ACCOUNT_NUM }}.dkr.ecr.us-west-1.amazonaws.com/example:latest
+          docker buildx build --platform linux/arm64 -t $ECR_REGISTRY/my-ecr-repo:${{ github.sha }} -f src/Dockerfile src --push
+          docker tag $ECR_REGISTRY/my-ecr-repo:${{ github.sha }} $ECR_REGISTRY/my-ecr-repo:latest
+          docker push $ECR_REGISTRY/my-ecr-repo:latest
+          aws lambda update-function-code --function-name example-lambda --image-uri $ECR_REGISTRY/my-ecr-repo:latest
 
   deploy_lambda:
     name: Deploy Lambda Function
