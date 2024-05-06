@@ -7,9 +7,33 @@ on:
     branches: [main]
 
 jobs:
-  deploy-example:
-    name: Deploy Lambda Example
-    if: github.ref == 'refs/heads/main'
+  deploy_ecr:
+    name: Deploy ECR Repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-west-1
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+
+      - name: Terraform Initialize
+        run: terraform init
+        working-directory: ./terraform
+
+      - name: Terraform Apply (ECR Only)
+        run: terraform apply -auto-approve -target=module.ecr_repository
+        working-directory: ./terraform
+
+  build_and_push_image:
+    name: Build and Push Docker Image
+    needs: deploy_ecr
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -18,7 +42,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-west-1
 
       - name: Login to Amazon ECR
@@ -41,3 +65,28 @@ jobs:
           docker tag example:latest ${{ secrets.AWS_ACCOUNT_NUM }}.dkr.ecr.us-west-1.amazonaws.com/example:latest
           docker push ${{ secrets.AWS_ACCOUNT_NUM }}.dkr.ecr.us-west-1.amazonaws.com/example:latest
           aws lambda update-function-code --function-name example-lambda --image-uri ${{ secrets.AWS_ACCOUNT_NUM }}.dkr.ecr.us-west-1.amazonaws.com/example:latest
+
+  deploy_lambda:
+    name: Deploy Lambda Function
+    needs: build_and_push_image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-west-1
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+
+      - name: Terraform Initialize
+        run: terraform init
+        working-directory: ./terraform
+
+      - name: Terraform Apply (Rest of Infrastructure)
+        run: terraform apply -auto-approve
+        working-directory: ./terraform
