@@ -77,10 +77,9 @@ jobs:
           ECR_REPOSITORY: example
           IMAGE_TAG: latest
         run: |
-          docker buildx build --platform linux/arm64 -t $ECR_REGISTRY/my-ecr-repo:${{ github.sha }} -f src/Dockerfile src --push
-          docker tag $ECR_REGISTRY/my-ecr-repo:${{ github.sha }} $ECR_REGISTRY/my-ecr-repo:latest
-          docker push $ECR_REGISTRY/my-ecr-repo:latest
-          aws lambda update-function-code --function-name example-lambda --image-uri $ECR_REGISTRY/my-ecr-repo:latest
+          docker buildx build --platform linux/arm64 -t $ECR_REGISTRY/my-ecr-repo:$IMAGE_SHA_TAG -f src/Dockerfile src --push
+          docker buildx build --platform linux/arm64 -t $ECR_REGISTRY/my-ecr-repo:$IMAGE_TAG -f src/Dockerfile src --push
+          aws lambda update-function-code --function-name example-lambda --image-uri $ECR_REGISTRY/my-ecr-repo:$IMAGE_TAG
 
   deploy_lambda:
     name: Deploy Lambda Function
